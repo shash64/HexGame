@@ -1,0 +1,125 @@
+/* Style de la partie principale de la page */
+body {
+    font-family: Arial; /* Police de la page */
+    background-color: #f5f5f5; /* Couleur de l'arrière plan */
+    margin: 0; /* Bordure de la page */
+    width: 100%; /* Largeur de la page */
+    height: 100vh; /* Hauteur de la page */
+    display: flex; /* Permet de gerer l'alignement des conteneurs */
+    justify-content: center; /* ? */
+    align-items: center /* ? */
+}
+
+
+
+/* Style du div des éléments de connexion */
+
+#connexion { /* Conteneur de l'id connexion (HTML) */
+    position: absolute; /* Position du conteneur de connexion */
+    top: 10px; /* Postion 10 pixels à partir du haut  */
+    left: 10px; /* Position 10 pixels à partir de la gauche */
+    background: white; /* Couleur de l'arrière plan en blanc  */
+    border: 1px solid #ccc; /* Bordure de 1 pixel tout autour du conteneur */
+    border-radius: 5px; /* Angles du conteneur de 5 pixels */
+    padding: 10px; /* Marge interieure de 10 pixels*/
+}
+#connexion input[type="text"] { /* Champ de saisie text "NomJoueur" */
+    padding: 5px; /* Marge interieure de 5 pixels */
+    border: 1px solid #ccc; /* Bordure de 1 pixel tout autour du champ de saisie  */
+    border-radius: 5px; /* Angles du champ de saisie de 5 pixels */
+    margin-right: 5px; /* Marge exterieure droit de 5 pixels (espace entre le champ et le bouton connexion */
+}
+#connexion button { /* Tous les boutons du conteneur connexion */
+    padding: 5px 10px; /* Marge interieur de hauteur 5 px et largeur 10px */
+    background-color: #007bff; /* Couleur du boutton bleu */
+    color: white; /* Couleur du texte du bouton */
+    border: none; /* Pas de bords (par défaut noirs) */
+    border-radius: 5px; /* Angles de 5 pixels du bouton */
+}
+
+
+
+/* Style du div de la liste des joueurs */
+
+#listeJoueursContainer { /* Conteneur de la liste des joueurs */
+    position: absolute; /* Position du conteneur */
+    top: 10px; /* Position 10 pixels à partir du haut */
+    right: 10px; /* Position 10 pixels à partir de la droite */
+    width: 250px; /* Taille du conteneur de 250 pixels */
+    background: white; /* Couleur de l'arrière plan */
+    border: 1px solid #ccc; /* Bord tout autour du conteneur de 1 pixel */
+    border-radius: 5px; /* Angles du conteneur de 5 pixels */
+    padding: 10px; /* Marge interieure de 10 pixels */
+}
+#listeJoueursContainer h3 { /* Texte H3 */
+    margin: 0 0 10px; /* Marge exterieure gauche de 10 pixels */
+}
+#listeJoueursContainer h4 { /* Texte H3 */
+    margin: 30px 0 10px; /* Marge exterieure gauche de 10 pixels */
+}
+
+
+
+/* Style du div de la messagerie */
+
+#messagerie { /* Conteneur de la messagerie */
+    position: absolute; /* Position du conteneur */
+    bottom: 10px; /*  Position 10 pixels à partir du bas */
+    left: 10px; /* Position 10 pixels à partir de la gauche */
+    width: 250px; /* Taille du conteneur de 250 px */
+    background: white; /* Arrière plan en blanc */
+    border: 1px solid #ccc; /* Bord tout autour du conteneur de 1 pixel */
+    border-radius: 5px; /* Angles du conteneur de 5 pixels */
+    padding: 10px; /* Marge interieure de 10 pixels */
+}
+#messagerie h3 { /* Texte H3 */
+    margin: 0 0 10px; /* Marge exterieure gauche de 10 pixels */
+}
+#messagerie input[type="text"] { /* Champ de saisie text "message" */
+    padding: 8px; /* Marge interieure de  8 px */
+    border: 1px solid #ccc; /* Bordure de 1 pixel tout autour du champ de saisie  */
+    border-radius: 5px; /* Angles du champ de saisie de 5 px */
+    margin-right: 5px; /* Marge exterieure droit de 5 pixels (espace entre le champ et le bouton Envoyer */
+}
+#messagerie button { /* Bouton du conteneur de messagerie */
+    padding: 8px 12px; /* Marge interieur de hauteur 8 px et largeur 12px */
+    background: #007bff; /* Couleur du boutton bleu */
+    color: white; /* Couleur blanche du texte du bouton */
+    border: none; /* Pas de bords */
+    border-radius: 5px; /* Angles de 5 pixels du bouton */
+}
+#listeMessages { /* Messages affichés */
+    list-style: none; /* Pas de style de liste (permet d'enlever le . devant le pseudo) */
+    margin: 10px 0 0; /* Marge de 10 pixels à gauche */
+    padding: 0; /* Marge interieure de 0 (par défaut la liste est centrée au milieu dy conteneur)*/
+}
+#listeMessages li { /* Liste des messages affichés */
+    margin-bottom: 5px; /* Marge de 5 pixels en bas */
+}
+
+#ProchainTour {
+    position: absolute;
+    top: 15%;
+    left: 50%;
+}
+
+/* Style du tablier d'hexagones */
+
+#tablier { /* Conteneur du tablier d'hexagones */
+    position: fixed; /* Position du conteneur */
+    top: 50%; /* Position en % en fonction du haut de la page */
+    left: 50%; /* Position en % en fonction de la gauche de la page */
+    transform: translate(-50%, -50%); /* ? */
+    width: 875px; /* Taille du conteneur en largeur et en pixels */
+    height: 540px; /*  Taille du conteneur en hauteur et en pixels */
+    background: #f9f9f9; /* Couleur d'arrière plan */
+    border: 2px solid #ccc; /* Taille des bordures de 2 pixels autour du conteneur */
+    border-radius: 10px; /* Angles du conteneur de 10 pixels */
+    display: flex; /* ? */
+}
+#tablier svg { /* Tableau d'hexagones */
+    width: 95%; /* Largeur du tableau d'hexagone dans le conteneur */
+    height: 100%; /* Hauteur du tableau d'hexagone dans le conteneur */
+}
+
+
