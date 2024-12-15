@@ -16,6 +16,3 @@ client_socket.io.html: Fichier client, il comprend le script pour générer le p
 
 styles.css: Fichier css, il permet de rajouter de l'ésthetique au fichier HTML afin de rendre plus lisible et intuitif le projet et l'experience de l'utilisateur.
 
-
-### Credit: 
- *shash*
