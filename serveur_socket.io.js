@@ -1,7 +1,3 @@
-// A faire, ligne 35 (?) et 47 jusqu'à la fin.
-
-
-
 /* On importe les modules nécessaires au fonctionnement du serveur js */
 const express = require('express'); 
 const app = express();
@@ -15,6 +11,9 @@ let joueurs = []; //Création d'un tableau de joueurs
 let id = []; //Création d'un tableau d'ids
 let idHexagone = []; //Création d'un tableau d'id d'hexagone
 let nbCoups = 0;
+let PartieCommencable = true;
+let etatHexagones = Array(11 * 11).fill(null); // Tableau pour suivre l'état des hexagones
+let partieEnCours = false;
 
 function getAdresseLocale() {
     return Object.values(os.networkInterfaces())
@@ -34,87 +33,162 @@ app.get('/', (request, response) => {
     response.sendFile('client_socket.io.html', {root: __dirname});
 });
 
-io.on('connection', (socket) => { //Lorsqu'une connexion au serveur est détéctée (ouverture de la page par un utilisateur)
-    socket.on('entrerPartie', (nomJoueur, callback) => { //On attend la requête client "entrer Partie" via le boutton de la page et on récupère le nom du Joueur
-        if (joueurs.length>=nbJoueursMax){ //Si le tableau des joueurs est plus grand en taille que le nombre de joueurs max
-            callback({sucess: false, message : "La partie est complete"}); //On renvoie via la fonction de callback un succes: false et un message
-        }else if(id.includes(socket.id)){ //Si l'id de la session est déjà présent dans le tableau des ids
-            callback({sucess: false, message : "Vous êtes deja connecté"}); //On renvoie à nouveau un succes: false et un message
-        }else{ //Sinon
-            console.log("Un joueur est connecté", socket.id); //On renvoie sur la console l'id du joueur connecté
-            const numeroJoueur = joueurs.length +1; //On attribue un numéro au nouveau joueur selon son placement dans le tableau des joueurs
-            const joueur = {id: socket.id, nom: nomJoueur, numero: numeroJoueur}; //On construit un élément joueur avec son id, son nom et son numéro
-            joueurs.push(joueur); //On ajoute l'élément dans le tableau des joueurs
-            id.push(socket.id)
-            if(joueurs.length===nbJoueursMax){ //Si le nombre de joueurs présent dans le tableau joueurs est égale au nombre de joueurs max
-                io.emit('AllJoueurs',joueurs); //On renvoie côté client la liste des joueurs pour l'afficher en HTML
-                callback({sucess: true, message : "La partie est prete a etre lancee"}); //On renvoie un succes: true avec un message de succès
-            }else{ //Sinon
-                io.emit('AllJoueurs',joueurs); //On renvoie côté client la liste des joueurs pour l'afficher en HTML
-                callback({success:true}); //On renvoie un succes: true sans message
-            }
+io.on('connection', (socket) => { //Lorsqu'une connexion au serveur est détectée
+        // Envoyer l'état actuel si une partie est en cours
+        if (partieEnCours) {
+            socket.emit('etatPartie', {etatHexagones,joueurs,nbCoups});
+            io.emit('AllJoueurs', joueurs);
+        }
+    
+    socket.on('entrerPartie', (nomJoueur, callback) => {
+        if (joueurs.length >= nbJoueursMax) {
+            callback({success: false, message: "La partie est complète"});
+        } else if (id.includes(socket.id)) {
+            callback({success: false, message: "Vous êtes déjà connecté"});
+        } else {
+            console.log("Un joueur est connecté", socket.id);
+            const numeroJoueur = joueurs.length + 1;
+            const joueur = {id: socket.id, nom: nomJoueur, numero: numeroJoueur};
+            joueurs.push(joueur);
+            id.push(socket.id);
 
+            if (joueurs.length === nbJoueursMax) {
+                partieEnCours = true;
+                io.emit('AllJoueurs', joueurs);
+                callback({success: true, message: "La partie est prête à être lancée"});
+            } else {
+                io.emit('AllJoueurs', joueurs);
+                callback({success: true});
+            }
         }
     });
 
     socket.on('onClickHex', (data) => {
-        if(idHexagone.includes(data)){
-            console.log("essai d'un hexagone déja cliqué");
-        }
-        else{
-            for (let i =0; i<joueurs.length;i++){
-                if(joueurs[i].id===socket.id&&(nbCoups%nbJoueursMax)==i){
+        if (idHexagone.includes(data)) {
+            console.log("Essai d'un hexagone déjà cliqué");
+        } else {
+            for (let i = 0; i < joueurs.length; i++) {
+                if (joueurs[i].id === socket.id && (nbCoups % nbJoueursMax) === i) {
                     idHexagone.push(data);
+                    etatHexagones[data] = i; // Marque l'hexagone pour le joueur
                     nbCoups++;
-                    io.emit('affichageHex',{nomProchainJoueur: joueurs[(i+1)%2].nom, idHex:data, col: (joueurs[i].numero)-1});
+
+                    // Vérifie les conditions de victoire
+                    if (verifierVictoire(i, etatHexagones, 11, 11)) {
+                        io.emit('victoire', { gagnant: joueurs[i].nom });
+                        console.log(`Victoire de ${joueurs[i].nom}`);
+                        return;
+                    }
+
+                    io.emit('affichageHex', {
+                        nomProchainJoueur: joueurs[(i + 1) % nbJoueursMax].nom,
+                        idHex: data,
+                        col: (joueurs[i].numero) - 1
+                    });
                 }
             }
-
-        } 
-    });
-
-    socket.on('envoyerMessage', (message) =>{
-        for (let i =0; i<joueurs.length;i++){
-            if(joueurs[i].id===socket.id){
-                io.emit('nouveauMessage',{nom: joueurs[i].nom, message, col: (joueurs[i].numero)-1});}
         }
     });
 
-    socket.on('deco',()=> {
-        deconnexion();
-    })
-
-    socket.on('disconnect',() => {
-        deconnexion();
-    })
-
-    socket.on('commencerPartie',() => {
-        if(joueurs.length==nbJoueursMax){
-            io.emit('commencerPartie')
-            idHexagone = [];
-            nbCoups = 0;
-        }
-    })
-
-
-
-    function deconnexion(){
-        console.log("un joueur est decconecté", socket.id);
-        let newjoueurs = [];
-        let newid = [];
-        for (let i =0; i<joueurs.length;i++){
-            if(joueurs[i].id!==socket.id){
-                newjoueurs.push(joueurs[i]);
-                newid.push(joueurs[i].id);
+    socket.on('envoyerMessage', (message) => {
+        for (let i = 0; i < joueurs.length; i++) {
+            if (joueurs[i].id === socket.id) {
+                io.emit('nouveauMessage', {nom: joueurs[i].nom, message, col: (joueurs[i].numero) - 1});
             }
         }
-        joueurs=newjoueurs;
-        id = newid;
-        for (let i =0; i<joueurs.length;i++){
-            joueurs[i].numero=i+1;
+    });
+
+    socket.on('deco', () => {
+        deconnexion();
+    });
+
+    socket.on('disconnect', () => {
+        deconnexion();
+    });
+
+    socket.on('commencerPartie', () => {
+        if (joueurs.length === nbJoueursMax && PartieCommencable) {
+            io.emit('commencerPartie');
+            idHexagone = [];
+            etatHexagones.fill(null);
+            nbCoups = 0;
+            PartieCommencable = false;
+        }
+    });
+
+    function deconnexion() {
+        console.log("Un joueur est déconnecté", socket.id);
+        let newJoueurs = [];
+        let newId = [];
+        for (let i = 0; i < joueurs.length; i++) {
+            if (joueurs[i].id !== socket.id) {
+                newJoueurs.push(joueurs[i]);
+                newId.push(joueurs[i].id);
+            }
+        }
+        joueurs = newJoueurs;
+        if (joueurs.length < nbJoueursMax) {
+            PartieCommencable = true;
+        }
+        id = newId;
+        for (let i = 0; i < joueurs.length; i++) {
+            joueurs[i].numero = i + 1;
         }
         io.emit('AllJoueurs', joueurs);
     }
-
-
 });
+
+function getVoisins(idHex, nbLignes, nbColonnes) {
+    const ligne = Math.floor(idHex / nbColonnes);
+    const colonne = idHex % nbColonnes;
+
+    const voisins = [];
+    const directions = [
+        [-1, 0],  // Haut-gauche
+        [-1, 1],  // Haut-droite
+        [0, -1],  // Gauche
+        [0, 1],   // Droite
+        [1, -1],  // Bas-gauche
+        [1, 0]    // Bas-droite
+    ];
+
+    directions.forEach(([dx, dy]) => {
+        const newLigne = ligne + dx;
+        const newColonne = colonne + dy;
+
+        if (newLigne >= 0 && newLigne < nbLignes && newColonne >= 0 && newColonne < nbColonnes) {
+            voisins.push(newLigne * nbColonnes + newColonne);
+        }
+    });
+
+    return voisins;
+}
+
+function verifierVictoire(joueurId, tableau, nbLignes, nbColonnes) {
+    const visited = new Set();
+
+    function dfs(hexId) {
+        if (visited.has(hexId)) return false;
+        visited.add(hexId);
+
+        // Si l'hexagone appartient au bord opposé, victoire
+        if ((joueurId === 0 && Math.floor(hexId / nbColonnes) === nbLignes - 1) ||
+            (joueurId === 1 && hexId % nbColonnes === nbColonnes - 1)) {
+            return true;
+        }
+
+        // Parcourt les voisins
+        for (const voisin of getVoisins(hexId, nbLignes, nbColonnes)) {
+            if (tableau[voisin] === joueurId && dfs(voisin)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // Recherche les hexagones du bord de départ
+    const bords = (joueurId === 0 ? [...Array(nbColonnes).keys()] : [...Array(nbLignes).keys()].map(l => l * nbColonnes));
+
+    return bords.some(startHex => tableau[startHex] === joueurId && dfs(startHex));
+}
