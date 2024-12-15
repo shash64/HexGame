@@ -122,4 +122,43 @@ body {
     height: 100%; /* Hauteur du tableau d'hexagone dans le conteneur */
 }
 
+/* Barres de couleur des joueurs */
+.barre-joueur {
+    position: absolute;
+    z-index: 10;
+}
+
+.barre-joueur.haut {
+    top: 117px;
+    left: 297px;
+    width: 875px;
+    height: 10px;
+    background-color: #A1A27E; 
+}
+
+.barre-joueur.bas {
+    bottom: 117px;
+    left: 297px;
+    width: 875px;
+    height: 10px;
+    background-color: #A1A27E; 
+}
+
+.barre-joueur.gauche {
+    top: 117px;
+    left: 287px;
+    width: 10px;
+    height: 564px;
+    background-color: #D5CD90; 
+}
+
+.barre-joueur.droite {
+    top: 117px;
+    right: 288px;
+    width: 10px;
+    height: 564px;
+    background-color: #D5CD90; 
+}
+
+
 
