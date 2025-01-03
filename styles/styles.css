@@ -10,8 +10,6 @@ body {
     align-items: center /* ? */
 }
 
-
-
 /* Style du div des éléments de connexion */
 
 #connexion { /* Conteneur de l'id connexion (HTML) */
@@ -31,7 +29,7 @@ body {
 }
 #connexion button { /* Tous les boutons du conteneur connexion */
     padding: 5px 10px; /* Marge interieur de hauteur 5 px et largeur 10px */
-    background-color: #007bff; /* Couleur du boutton bleu */
+    background-color: #317195; /* Couleur du boutton bleu */
     color: white; /* Couleur du texte du bouton */
     border: none; /* Pas de bords (par défaut noirs) */
     border-radius: 5px; /* Angles de 5 pixels du bouton */
@@ -83,7 +81,7 @@ body {
 }
 #messagerie button { /* Bouton du conteneur de messagerie */
     padding: 8px 12px; /* Marge interieur de hauteur 8 px et largeur 12px */
-    background: #007bff; /* Couleur du boutton bleu */
+    background: #317195; /* Couleur du boutton bleu */
     color: white; /* Couleur blanche du texte du bouton */
     border: none; /* Pas de bords */
     border-radius: 5px; /* Angles de 5 pixels du bouton */
@@ -97,11 +95,13 @@ body {
     margin-bottom: 5px; /* Marge de 5 pixels en bas */
 }
 
+
 #ProchainTour {
-    position: absolute;
-    top: 15%;
-    left: 50%;
+    position: fixed;/* Position du conteneur */
+    bottom: 10px;/* Position en pixel en fonction du bas de la page */
+    left: 40%;/* Position en % en fonction de la gauche de la page */
 }
+
 
 /* Style du tablier d'hexagones */
 
@@ -113,7 +113,6 @@ body {
     width: 875px; /* Taille du conteneur en largeur et en pixels */
     height: 540px; /*  Taille du conteneur en hauteur et en pixels */
     background: #f9f9f9; /* Couleur d'arrière plan */
-    border: 2px solid #ccc; /* Taille des bordures de 2 pixels autour du conteneur */
     border-radius: 10px; /* Angles du conteneur de 10 pixels */
     display: flex; /* ? */
 }
@@ -122,43 +121,23 @@ body {
     height: 100%; /* Hauteur du tableau d'hexagone dans le conteneur */
 }
 
-/* Barres de couleur des joueurs */
-.barre-joueur {
-    position: absolute;
-    z-index: 10;
+
+.hidden { /* Cahcher la visibilite pour les boutons */
+    visibility: hidden;
 }
 
-.barre-joueur.haut {
-    top: 117px;
-    left: 297px;
-    width: 875px;
-    height: 10px;
-    background-color: #A1A27E; 
+#navigation {
+    position: fixed; /* Position du conteneur */
+    bottom: 20px; /* Position en pixel en fonction du bas de la page */
+    right: 20px; /* Position en pixel en fonction de la gauche de la page */
+    display: flex; /* Permet de gerer l'alignement des conteneurs */
+    gap: 10px; /* gap entre les 2 boutons */
 }
 
-.barre-joueur.bas {
-    bottom: 117px;
-    left: 297px;
-    width: 875px;
-    height: 10px;
-    background-color: #A1A27E; 
+#navigation button {
+    padding: 10px 15px; /* Marge interieur de hauteur 8 px et largeur 12px */
+    background-color: #317195; /* Couleur d'arrière plan */
+    color: white; /* Couleur blanche du texte du bouton */
+    border: none; /*sans bordure */
+    border-radius: 5px; /* Angles de 5 pixels du bouton */
 }
-
-.barre-joueur.gauche {
-    top: 117px;
-    left: 287px;
-    width: 10px;
-    height: 564px;
-    background-color: #D5CD90; 
-}
-
-.barre-joueur.droite {
-    top: 117px;
-    right: 288px;
-    width: 10px;
-    height: 564px;
-    background-color: #D5CD90; 
-}
-
-
-
