@@ -1,38 +1,101 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="https://d3js.org/d3.v7.min.js"></script>
-    <link rel="stylesheet" href="/styles/styles.css">
+    <script src="/socket.io/socket.io.js"></script> <!-- Importation du module socket.io -->
+    <script src="https://d3js.org/d3.v7.min.js"></script> <!-- Importation du module d3.js -->
+    <link rel="stylesheet" href="/styles/styles.css"> <!-- Importation de la feuille de style css-->
     <script>
-        var socket = io();
-        const couleurs = ['#A1A27E', '#D5CD90'];
+        var socket = io(); //Creation d'un objet socket
+        const couleurs = ['#31708f', '#a94442']; //Tableau pour définir les couleurs des joueurs
+        // Variables pour bouton précédent et suivant
+        let index = 0; 
+        let historiqueHexagones = [];
 
-        function entrerPartie() {
-            socket.emit('entrerPartie', document.getElementById("NomJoueur").value, (reponse) => {
-                if (reponse.success) {
-                    document.getElementById("NomJoueur").value = '';
-                } else {
-                    alert(reponse.message);
+        function entrerPartie(){ // Fonction appelée quand le bouton de soumission du formulaire est cliqué
+            socket.emit('entrerPartie',document.getElementById("NomJoueur").value, (reponse)=> { //On envoie une requete au serveur avec le nom du Joueur et une fonction de callback
+                if (reponse.success){ //Si la variable de callback reponse.succes renvoie true alors
+                    document.getElementById("NomJoueur").value=''; //On remet le champ du formulaire vide
+                }
+                else{ //Sinon
+                    alert(reponse.message); //On renvoie une alerte du message de la variable de callback message
                 }
             });
         }
-
-        function deco() {
-            socket.emit('deco');
+        function deco(){ //Fonction appelée quand le bouton de deconnexion est cliqué
+            socket.emit('deco'); //On renvoie au serveur une requete permettant la deconnexion
+        }
+        function envoyerMessage(){ //Fonction appelée quand le bouton Envoyer est cliqué
+            const message = document.getElementById('message').value.trim();
+            //Message vide traité
+            if (message === '') {
+                alert('Le message ne peut pas être vide.');
+                return;
+            }
+            socket.emit('envoyerMessage',message); //On renvoie au serveur une requete avec le message de l'utilisateur
+            document.getElementById('message').value=''; //On remet le champ à 0
+            //Test pour voir si le "return 0;" permet de renvoyer à nouveau un message
+        }
+        function creeHexagone(rayon) { //Fonction appelée lors de le génération du damier pour le jeu en fonction du rayon
+            var points = new Array(); //Création d'un tableau pour y stocker les coordonées de l'hexagone
+            for (var i = 0; i < 6; ++i) { //boucle sur le nombre de côtés d'un hexagone
+                var angle = i * Math.PI / 3; //Différents calculs mathématiques pour creer de la bonne maniere un hexagone
+                var x = Math.sin(angle) * rayon; //Calcul du x
+                var y = -Math.cos(angle) * rayon; //Calcul du y
+                console.log("x="+Math.round(x*100)/100+" y="+Math.round(y*100)/100); //On affiche dans la console notre x et notre y 
+                points.push([Math.round(x*100)/100, Math.round(y*100)/100]);//On les mets dans notre tableau
+            }
+            return points; //On renvoie le tableau contenant le x et le y de l'hexagone
         }
 
-        function envoyerMessage() {
-            socket.emit('envoyerMessage', document.getElementById('message').value);
-            document.getElementById('message').value = '';
+        function commencerPartie(){ //Fonction appelée quand le bouton de commencer partie est cliqué
+            socket.emit('commencerPartie'); //Envoie une requete au serveur pour faire commencer la partie à tous les joueurs
         }
 
-        function commencerPartie() {
-            socket.emit('commencerPartie');
+        function recommencerPartie(){ //Fonction pour recommencer la partie
+            document.getElementById('navigation').classList.add('hidden'); //on cache les boutons precedents et suivants
+            socket.emit('recommencerPartie'); //envoie la requete au serveur
         }
 
-        socket.on('etatPartie', (data) => {
-            genereDamier(30, 11, 11);
+        function genereDamier(rayon, nbLignes, nbColonnes) { //Fonction pour generer le tableau de jeu
+            d3.select("#tablier").html("");
+            // Créer un hexagone basé sur le rayon
+            var hexagone = creeHexagone(rayon);
+            // Distance horizontale et verticale entre les centres des hexagones
+            var distanceHorizontale = Math.sqrt(3) * rayon;
+            var distanceVerticale = 1.5 * rayon;
+            // Création du SVG sur l'id réservé au tableau de hex
+            d3.select("#tablier").append("svg").attr("width", 1000).attr("height", 1000);
+            // Mise en place de l'affichage des hexagones avec un décalage progressif
+            //Double boucle imbriquée pour affichage des hexagones
+            for (var ligne = 1; ligne <= nbLignes; ligne++) { //On commence à lma ligne n°1 et pas à 0 pour ne pas avoir des hexagones coupés en haut 
+                for (var colonne = 0; colonne < nbColonnes; colonne++) {
+                    var d = "";
+                    for (var h in hexagone) {
+                        // Déplacer chaque ligne vers la droite progressivement (1 * distanceHorizontale pour chaque ligne)
+                        var x = hexagone[h][0] + colonne * distanceHorizontale + ligne * (distanceHorizontale / 2);
+                        var y = hexagone[h][1] + ligne * distanceVerticale;
+                        d += (h == 0 ? "M" : "L") + x + "," + y + " ";
+                    }
+                    d += "Z";
+
+                    // Dessiner l'hexagone dans le SVG
+                    d3.select("svg")
+                        .append("path") 
+                        .attr("d", d)
+                        .attr("stroke", "black")
+                        .attr("fill", "white")
+                        .attr("id", "h" + ((ligne-1) * nbLignes + colonne)) 
+                        .on("click", function(d) { //Quand l'Hexagone est cliqué, 
+                            let numHexagone = parseInt(d3.select(this).attr('id').substring(1)); //on récupere le numéro d'hexagone
+                            socket.emit('onClickHex', numHexagone); //On envoie la requete au serveur avec qui va lui renvoyer les infos nécesaaire sur le joueur et l'hexagone en question.
+                        });
+                }
+            }
+        }
+
+        socket.on('etatPartie', (data) => { //Quand on recoit un message de la part du serveur (fonction pour les spectateurs)
+            genereDamier(30, 11, 11); //On leur génére un damier
+            //On colorie chaque case par la bonne couleur pour qu'ils aient le damier à jour
             data.etatHexagones.forEach((joueur, index) => {
                 if (joueur !== null) {
                     d3.select(`#h${index}`).attr('fill', couleurs[joueur]);
@@ -40,127 +103,125 @@
             });
         });
 
-        socket.on('affichageHex', data => {
-            d3.select(`#h${data.idHex}`).attr('fill', couleurs[data.col]);
-            const titre = document.getElementById('ProchainTour');
-            titre.textContent = `Au tour de ${data.nomProchainJoueur} !`;
+        socket.on('affichageHex',data => { //Quand on recoit le message de la part du serveur (Nom du joueur, id de l'hexagone cliqué, couleur associé au joueur)
+            console.log(data); //On affiche toutes ces infos dans la console
+            d3.select(`#h${data.idHex}`) //On séléctione le bon hexagone
+                .attr('fill', couleurs[data.col]);//Et on le colorie de la couleur associée au joueur qui a cliqué sur l'hex
+            const titre = document.getElementById('ProchainTour'); //on recupere l'id de l'élement html 
+            titre.textContent = `Au tour de ${data.nomProchainJoueur} !`;//pour y afficher le prochain tour
         });
+        
+        socket.on('AllJoueurs',data => { //Quand on recoit ce message du serveur
+            const liste = document.getElementById('listeJoueurs'); // On récupère la liste HTML "listeJoueurs" et on la mets dans un élément liste
+            liste.innerHTML=''; // On réinitialise la liste
+            let conditionVictoire = "Haut-Bas" //premier joueur : pour gagner il doit faire de haut en bas
+            data.forEach((joueur) => { //Pour chaque joueur => data
+                const item = document.createElement('li'); //On crée un élément item qui prend comme valeur une ligne d'un tableau HTML
+                item.textContent = `${joueur.numero}.${joueur.nom}.${conditionVictoire}`; //On ajoute dans l'élément item le numéro du joueur et son nom
+                item.style.color = couleurs[joueur.numero-1]; //On ajoute une couleur distincte pour chaque joueurs
+                liste.appendChild(item); //On ajoute item (ligne du tableau HTML) à l'élément liste
+                conditionVictoire = "Gauche-Droite" // deuxieme joueur de gauche a droite
 
-        socket.on('AllJoueurs', data => {
-            const liste = document.getElementById('listeJoueurs');
-            liste.innerHTML = '';
-            data.forEach(joueur => {
-                const item = document.createElement('li');
-                item.textContent = `${joueur.numero}. ${joueur.nom}`;
-                item.style.color = couleurs[joueur.numero - 1];
-                liste.appendChild(item);
             });
+        })
+        socket.on('nouveauMessage',data => { //Quand on recoit ce message du serveur
+            const liste = document.getElementById('listeMessages'); //On récupère la liste HTML "listeMessages" et on la mets dans un élément liste
+            const item = document.createElement('li'); //On créé un nouvel élément HTML de type liste
+            const nom = document.createElement('span'); //On créé un nouvel élément HTML pour affciher le nom du joueur qui envoi le message
+            nom.textContent = `${data.nom}:`; //On ajoute dans l'élément nom le nom du joueur => data
+            nom.style.color = couleurs[data.col]; //On lui attribut une couleur distincte
+            const message = document.createElement('span'); //On créé un élément pour afficher le message => data
+            message.textContent = ` ${data.message}`; //On ajoute le contenu du message
+            item.appendChild(nom); //On ajoute dans l'élément item le nom
+            item.appendChild(message); //Ainsi que le message
+            liste.appendChild(item); //Puis on ajoute l'élément item dans la liste pour l'afficher en HTML
         });
 
-        socket.on('nouveauMessage', data => {
-            const liste = document.getElementById('listeMessages');
-            const item = document.createElement('li');
-            const nom = document.createElement('span');
-            nom.textContent = `${data.nom}: `;
-            nom.style.color = couleurs[data.col];
-            const message = document.createElement('span');
-            message.textContent = data.message;
-            item.appendChild(nom);
-            item.appendChild(message);
-            liste.appendChild(item);
-        });
-
-        socket.on('commencerPartie', () => {
-            const titre = document.getElementById('ProchainTour');
+        socket.on('commencerPartie',() =>{ //Quand on recoit un message du serveur comme quoi la partie va commencer
+            //On annonce le joueur qui commence 
+            const titre = document.getElementById('ProchainTour'); 
             titre.textContent = "Premier connecté, premier qui commence à jouer !";
-            genereDamier(30, 11, 11);
-        });
+            document.getElementById('navigation').classList.add('hidden');
+            genereDamier(30, 11, 11); //On genere un damier au joueurs
+        })
 
-        socket.on('victoire', data => {
-            alert(`Victoire de ${data.gagnant} !`);
+        socket.on('victoire', data => { //Quand on reçoit un message du serveur comme quoi il  y a un vainqueur
+            alert(`Victoire de ${data.gagnant} !`); //on l'affiche en alerte sur le navigateur
+            
+            //et sur la page html
             const titre = document.getElementById('ProchainTour');
             titre.textContent = `${data.gagnant} a gagné la partie !`;
+            
+            //on affiche les boutons précedents et suivants
+            document.getElementById('navigation').classList.remove('hidden');
+
+                                                        
+            historiqueHexagones = data.historique; // Récupère l'historique
+            index = historiqueHexagones.length - 1; // Positionne sur le dernier coup
         });
 
-        function genereDamier(rayon, nbLignes, nbColonnes) {
-            d3.select("#tablier").html("");
-            var hexagone = creeHexagone(rayon);
-            var distanceHorizontale = Math.sqrt(3) * rayon;
-            var distanceVerticale = 1.5 * rayon;
-
-            d3.select("#tablier")
-                .append("svg")
-                .attr("width", 1000)
-                .attr("height", 1000);
-
-            for (var ligne = 1; ligne <= nbLignes; ligne++) {
-                for (var colonne = 0; colonne < nbColonnes; colonne++) {
-                    var d = "";
-                    for (var h in hexagone) {
-                        var x = hexagone[h][0] + colonne * distanceHorizontale + ligne * (distanceHorizontale / 2);
-                        var y = hexagone[h][1] + ligne * distanceVerticale;
-                        d += (h == 0 ? "M" : "L") + x + "," + y + " ";
-                    }
-                    d += "Z";
-
-                    d3.select("svg")
-                        .append("path")
-                        .attr("d", d)
-                        .attr("stroke", "black")
-                        .attr("fill", "white")
-                        .attr("id", "h" + ((ligne - 1) * nbColonnes + colonne))
-                        .on("click", function () {
-                            let numHexagone = parseInt(d3.select(this).attr('id').substring(1));
-                            socket.emit('onClickHex', numHexagone);
-                        });
-                }
+        function Precedent() { //afficher les coups de 0 a index -1
+            if (index > 0) {
+                index = index-1;
+                mettreAJourAffichageHexagones();
             }
         }
 
-        function creeHexagone(rayon) {
-            var points = [];
-            for (var i = 0; i < 6; ++i) {
-                var angle = i * Math.PI / 3;
-                var x = Math.sin(angle) * rayon;
-                var y = -Math.cos(angle) * rayon;
-                points.push([x, y]);
+        function Suivant() { //afficher les coups de 0 a index +1
+            if (index < historiqueHexagones.length - 1) {
+                index = index+1;
+                mettreAJourAffichageHexagones();
             }
-            return points;
+        }
+
+        function mettreAJourAffichageHexagones() { //fonction pour afficher le damier en fonction du nombre de coup de la variable index
+            // Réinitialise le damier
+            d3.selectAll("path").attr("fill", "white");
+
+            // Applique les couleurs jusqu'à l'index courant
+            for (let i = 0; i <= index; i++) {
+                const hex = historiqueHexagones[i];
+                d3.select(`#h${hex.id}`).attr("fill", couleurs[hex.joueur]);
+            }
         }
     </script>
 </head>
 <body>
-    <div class="container">
-        <div id="connexion">
-            <label for="NomJoueur">Pseudo:</label>
-            <input type="text" id="NomJoueur" required>
-            <button onclick="entrerPartie()">Connexion</button>
-            <button onclick="deco()">Déconnexion</button>
-            <button onclick="commencerPartie()">Commencer Partie</button>
+    <div class="container"> <!--Mise en place de conteneurs pour la simplification des sous parties (div) en css -->
+        
+        <div id="connexion"> <!--id pour la feuille css-->
+            <label for="NomJoueur">Pseudo:</label> <!--Section pour l'affichage pseudos des joueurs-->
+            <input type="text" id="NomJoueur" required> <!--Champ de saisie du pseudo-->
+            <button onclick="entrerPartie()">Connexion</button> <!-- Bouton pour se connecter à la partie-->
+            <button onclick="deco()">Déconnexion</button> <!--Bouton pour se deconnecter de la partie-->
+            <button onclick="commencerPartie()">Commencer Partie</button> <!--Bouton pour commencer la partie-->
+            <button onclick="recommencerPartie()">Recommencer Partie</button> <!--Bouton pour recommencer la partie-->
         </div>
 
         <h4 id="ProchainTour"></h4>
 
-        <div id="listeJoueursContainer">
-            <h3>Liste des joueurs:</h3>
-            <ul id="listeJoueurs"></ul>
+        <div id="listeJoueursContainer"> <!--id pour la feuille css-->
+            <h3>Liste des joueurs:</h3> <!--Section pour l'affichage des joueurs connectés-->
+            <ul id="listeJoueurs"></ul> <!--Création d'une liste avec un id pour pouvoir ajouter les pseudos des joueurs au bon endroit-->
         </div>
 
-        <div id="messagerie">
-            <h3>Messagerie</h3>
-            <ul id="listeMessages"></ul>
-            <input type="text" id="message" placeholder="Envoyez un message">
-            <button onclick="envoyerMessage()">Envoyer</button>
+        <div id="messagerie">  <!--id pour la feuille css-->
+            <h3>Messagerie</h3><!-- Section pour l'affichage des messages-->
+            <ul id="listeMessages"></ul> <!--Création d'une liste avec un id pour pouvoir ajouter les messages des joueurs au bon endroit-->
+            <input type="text" id="message" placeholder="Envoyez un message"> <!--Champ de saisie du message-->
+            <button onclick="envoyerMessage()">Envoyer</button> <!--Bouton pour soummetre le message-->
         </div>
-
-        <div id="tablier"></div>
         
-        <div class="barre-joueur bas" id="barre-joueur-rouge"></div>
-        <div class="barre-joueur haut" id="barre-joueur-rouge"></div>
 
-        <div class="barre-joueur gauche" id="barre-joueur-bleu"></div>
-        <div class="barre-joueur droite" id="barre-joueur-bleu"></div>
+        <div id="tablier"></div> <!--Création d'une section avec un id qui sera réservé pour l'affichage du tableau d'hexagones et pour la feuille css-->
+
+
+        <!-- Bouton suivant et précedent-->
+        <div id="navigation" class="hidden"> 
+            <button id="precedent" onclick="Precedent()">Précédent</button>
+            <button id="suivant" onclick="Suivant()">Suivant</button>
+        </div>
+
     </div>
 </body>
 </html>
-
