@@ -1,18 +1,17 @@
-# Jeu de Hex avec JavaScript
+# Hex Game with JavaScript (Uni Project)
 
-Ce projet est un jeu multijoueur utilisant Node.js, Express, D3.js et Socket.io. 
-Il permet aux joueurs de se connecter, se déconnecter, d'envoyer des messages et de jouer à un jeu sur un plateau d'hexagones.
+This project is a multiplayer game using Node.js, Express, D3.js, and Socket.io.
+It allows players to connect, disconnect, send messages, and play a game on a hexagonal board.
 
-# Fonctionnalités
-- Connexion, deconnexion et gestion des joueurs (noms/id/couleurs).
-- Génération dynamique d'un plateau hexagonal avec D3.js.
-- Envoi de messages en temps réel (chat box).
-- Interaction avec les hexagones sur le plateau (clics).
+# Features: 
+- Player connection, disconnection, and management (names/ID/colors).
+- Dynamic generation of a hexagonal board with D3.js.
+- Real-time messaging (chat box).
+- Interaction with hexagons on the board (clicks).
 
-# Structure du Projet
-serveur_socket.io.js: Fichier du serveur, il gère les connexions et deconnexions des joueurs (fermeture de la page compris), les interactions (via la chat box et le jeu en lui même) et la synchronisation en temps réel.
+# Project Structure:
+serveur_socket.io.js: Server file, it manages player connections and disconnections (including page closure), interactions (via the chat box and the game itself), and real-time synchronization.
 
-client_socket.io.html: Fichier client, il comprend le script pour générer le plateau, gérer les événements avec le serveur et afficher les messages et autres textes dynamiques.
+client_socket.io.html: Client file, it includes the script to generate the board, handle events with the server, and display messages and other dynamic text.
 
-styles.css: Fichier css, il permet de rajouter de l'ésthetique au fichier HTML afin de rendre plus lisible et intuitif le projet et l'experience de l'utilisateur.
-
+styles.css: CSS file, it adds aesthetics to the HTML file to make the project and user experience more readable and intuitive.
