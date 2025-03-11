@@ -94,7 +94,7 @@
         }
 
         socket.on('etatPartie', (data) => { //Quand on recoit un message de la part du serveur (fonction pour les spectateurs)
-            genereDamier(30, 11, 11); //On leur génére un damier
+            genereDamier(30, 11, 11); //On leur génére un damier de 11 par 11
             //On colorie chaque case par la bonne couleur pour qu'ils aient le damier à jour
             data.etatHexagones.forEach((joueur, index) => {
                 if (joueur !== null) {
